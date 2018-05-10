@@ -1,14 +1,14 @@
 [
 	{
-		"id": "item_1",
+		"id": 0,
 		"category": "vehicle"
 	},
 	{
-		"id": "item_2",
+		"id": 1,
 		"category": "plant"
 	},
 	{
-		"id": "item_3",
+		"id": 2,
 		"category": "animal"
 	}
 ]

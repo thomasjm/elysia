@@ -16,7 +16,7 @@ type User struct {
 }
 
 type Item struct {
-	Id       string `json:"id"`
+	Id       int    `json:"id"`
 	Category string `json:"category"`
 }
 
@@ -47,7 +47,7 @@ func parseUser(userJson string) User {
 }
 
 func loadPage(w http.ResponseWriter, r *http.Request, user User) {
-	items := GenItems(user)
+	items := getItems(r, user)
 	itemsHtml := items.getHtml()
 	buf := new(bytes.Buffer)
 	t, _ := template.ParseFiles("page.html")
@@ -57,10 +57,6 @@ func loadPage(w http.ResponseWriter, r *http.Request, user User) {
 	}
 	w.WriteHeader(200)
 	fmt.Fprintf(w, buf.String())
-}
-
-func handleClick(w http.ResponseWriter, r *http.Request, user User) {
-	w.WriteHeader(200)
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -103,6 +99,7 @@ func main() {
 			saveDB()
 		}
 	}()
+	// startBandit()
 	http.HandleFunc("/", handler)
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err)

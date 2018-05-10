@@ -7,7 +7,6 @@ import (
 
 var (
 	ItemsList []Item
-	ItemsMap  map[string]Item
 )
 
 func LoadItems() {
@@ -19,14 +18,10 @@ func LoadItems() {
 	if err != nil {
 		panic(err)
 	}
-	for _, item := range ItemsList {
-		ItemsMap[item.Id] = item
-	}
 }
 
 func init() {
 	ItemsList = make([]Item, 0)
-	ItemsMap = make(map[string]Item)
 	LoadItems()
 
 }
