@@ -18,30 +18,18 @@ def index():
     print("cookie-user:", c)
     ctx = json.loads(request.cookies.get('user'))
     item_idx = b.get_items(ctx)
+    if len(item_idx) == 0:
+        return render_template('page.html', items=items[:b.M])
     return render_template('page.html', items=[items[i] for _, i in enumerate(item_idx)])
 
-@app.route('/click<int:item><int:position><float:reward>',methods=['GET', 'POST'])
-def click(item, position, reward=1.0):
+@app.route('/click',methods=['GET', 'POST'])
+def click():
+    item = int(request.form['item'])
+    position = int(request.form['position'])
+    print("item:", item, "position:", position)
     ctx = json.loads(request.cookies.get('user'))
-    print("handle_user_action called")
-    b.handle_user_action(ctx, item, position, reward)
+    b.handle_user_action(ctx, item, position)
     return 'success'
-
-@app.route('/handle_user_action<string:context><int:item><int:position><float:reward>',methods=['GET', 'POST'])
-def handle_user_action(context, item, position, reward):
-    print("handle_user_action called")
-    ctx = json.loads(context)
-    b.handle_user_action(ctx, item, position, reward)
-    return 'success'
-
-@app.route('/get_items<string:context><int:item><int:position>',methods=['GET', 'POST'])
-def get_items(context, item, position):
-    print("get items called")
-    ctx = json.loads(context)
-    # items = b.get_items(ctx, item, position)
-    return json.dumps(items)
-
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run bandit')

@@ -15,6 +15,14 @@
 	strong{
 		font-size:14px;
 	}
+	.item{
+		-webkit-transition: color 1s; /* Safari */
+		transition: color 1s;
+	}
+	.item:hover{
+		color:blue;
+		cursor:pointer;
+	}
 	a{
 		color: #0088FF;
 	}
@@ -29,12 +37,13 @@
 <body style="margin: 0; font-family: arial,sans-serif; color: #222;width:70%;margin-left:15%;margin-top:40px;">
 	{% if items %}
 		{% for item in items %}
-			<div class"item\" data-item-id="{{item.id|e}}" data-item-category="{{item.category|e}}">item: {{item.id|e}}  category: {{item.category|e}}</div>
+			<div class="item" data-item-id="{{item.id|e}}" data-item-category="{{item.category|e}}">item: {{item.id|e}}  category: {{item.category|e}}</div>
 		{% endfor %}
 	{% else %}
 		<h1>No items for you! This is probably not your fault, unless you are hacking on this.</h1>
 	{% endif %}
 	<script type="text/javascript">
+		// handle user cookie
 		db = {
 			SetCookie: function(n, t, i) {
 				var r = new Date,
@@ -50,8 +59,44 @@
 		}
 		var c = db.GetCookie("user");
 		if (c == null) {
-			db.SetCookie("user", JSON.stringify{"age":55, "gender":"female"});
+			db.SetCookie("user", JSON.stringify({"age":55, "gender":"female"}));
 		}
+
+		// handle item clicks
+		function jsonToQueryString(json) {
+			return '' + 
+				Object.keys(json).map(function(key) {
+					return encodeURIComponent(key) + '=' +
+						encodeURIComponent(json[key]);
+				}).join('&');
+		}
+
+		function handleClick(id, position){
+			xhr = new XMLHttpRequest();
+			xhr.open('POST', 'click');
+			xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+			xhr.onload = function() {
+				if (xhr.status === 200 && xhr.responseText !== newName) {
+					alert('Something went wrong.  Name is now ' + xhr.responseText);
+				}
+				else if (xhr.status !== 200) {
+					alert('Request failed.  Returned status of ' + xhr.status);
+				}
+			};
+
+			xhr.send(jsonToQueryString({"item": id, "position": position, "reward": 1}));
+		}
+
+		var ls = document.getElementsByClassName("item");
+		for (var i = 0; i < ls.length; i++) {
+			ls[i].setAttribute("data-position", i.toString());
+			ls[i].onclick = function(event) {
+				var id = event.target.getAttribute("data-item-id"),
+					pos = event.target.getAttribute("data-position");
+				handleClick(id, pos);
+			}
+		}
+
 	</script>
 </body>
 </html>
