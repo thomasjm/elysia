@@ -1,6 +1,7 @@
 import cvxpy as cvx
 import numpy as np
 import math
+import random
 from scipy.optimize import minimize
 import sys
 
@@ -8,7 +9,7 @@ import sys
 range = range if sys.version_info >= (3, 0) else xrange
 
 class Bandit:
-    def __init__(self, regularization_param=0.1, num_items=3, num_positions=2, len_contexts=3):
+    def __init__(self, regularization_param=0.5, num_items=3, num_positions=2, len_contexts=3):
         self.K = num_items
         self.M = num_positions
         self.S = num_positions
@@ -19,9 +20,9 @@ class Bandit:
         self.m = np.zeros(self.D)
         self.q = np.full(self.D, regularization_param)
 
-    def handle_user_action(self, context, item, pos, reward):
+    def handle_user_action(self, context, item, pos):
         (new_m, new_q) = self.update_posterior(self.gen_psi(self.C, self.K, self.M, context, item, pos),
-                                               reward, self.m, self.q)
+                                               self.m, self.q)
 
         # Update the m and q vectors
         self.m = new_m
@@ -68,7 +69,7 @@ class Bandit:
         ev = np.zeros((K, M))
         for k in range(K):
             for m in range(M):
-                ev[k][m] = np.dot(w, cls.gen_psi(C, K, M, context, k, m))
+                ev[k][m] = cls.sigmoid(np.dot(w, cls.gen_psi(C, K, M, context, k, m)))
         return ev
 
     @staticmethod
@@ -93,34 +94,47 @@ class Bandit:
         return f.value
 
     @staticmethod
-    def update_posterior(event, reward, m, q):
-        """Run a solver to find an updated m and q given the event and reward."""
-        def objective(w):
-            term1 = -0.5 * sum(q[i] * (w[i]-m[i]) * (w[i]-m[i]) for i in range(len(event)))
-            term2 = -math.log(1+math.exp(-1 * reward * np.dot(w, event)))
-            result = -(term1 + term2)
-            return result
+    def update_posterior(psi, m, q):
+        print("psi: ", psi)
 
-        x0 = np.zeros(len(event))
+        """Run a solver to find an updated m and q given the psi."""
+        def objective(w):
+            term1 = -0.5 * np.sum(np.multiply(q, (w - m)**2))
+            term2 = -math.log(1 + math.exp(-np.dot(w, psi)))
+            return -(term1 + term2)
+
+        x0 = np.zeros(len(psi))
         res = minimize(objective, x0, method='nelder-mead', options={'xtol': 1e-6, 'disp': False})
 
-        prob = 1 / (1 + math.exp(-np.dot(res.x, event)))
-        new_q = q + prob * (1 - prob) * (event**2)
+        prob = Bandit.sigmoid(np.dot(res.x, psi))
+        new_q = q + prob * (1 - prob) * (psi**2)
 
         return (res.x, new_q)
 
+    @staticmethod
+    def sigmoid(x):
+        return 1 / (1 + math.exp(-x))
 
 b = Bandit()
 
 ctx = {"age": 55, "gender": "female"}
 
-for i in range(20):
+for i in range(300):
     item = 0
-    pos = 1
+    # pos = 1
+    pos = random.randint(0, 1)
     reward = 1
 
-    b.handle_user_action(ctx, item, pos, reward)
+    print("----------------------------")
+
+    b.handle_user_action(ctx, item, pos)
     print("m: ", b.m)
 
-    items = b.get_items(ctx)
-    print("items: ", items)
+    w = b.sample_posterior(b.m, b.q)
+    ev = b.expected_values(b.C, b.K, b.M, w, ctx)
+    print("ev: ", ev)
+
+    print("ev - mean(ev): ", ev - np.mean(ev))
+
+    # items = b.get_items(ctx)
+    # print("items: ", items)
