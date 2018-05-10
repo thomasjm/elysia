@@ -115,26 +115,27 @@ class Bandit:
     def sigmoid(x):
         return 1 / (1 + math.exp(-x))
 
-b = Bandit()
+if __name__ == '__main__':
+    b = Bandit()
 
-ctx = {"age": 55, "gender": "female"}
+    ctx = {"age": 55, "gender": "female"}
 
-for i in range(300):
-    item = 0
-    # pos = 1
-    pos = random.randint(0, 1)
-    reward = 1
+    for i in range(300):
+        item = 0
+        # pos = 1
+        pos = random.randint(0, 1)
+        reward = 1
 
-    print("----------------------------")
+        print("----------------------------")
 
-    b.handle_user_action(ctx, item, pos)
-    print("m: ", b.m)
+        b.handle_user_action(ctx, item, pos)
+        print("m: ", b.m)
 
-    w = b.sample_posterior(b.m, b.q)
-    ev = b.expected_values(b.C, b.K, b.M, w, ctx)
-    print("ev: ", ev)
+        w = b.sample_posterior(b.m, b.q)
+        ev = b.expected_values(b.C, b.K, b.M, w, ctx)
+        print("ev: ", ev)
 
-    print("ev - mean(ev): ", ev - np.mean(ev))
+        print("ev - mean(ev): ", ev - np.mean(ev))
 
-    # items = b.get_items(ctx)
-    # print("items: ", items)
+        # items = b.get_items(ctx)
+        # print("items: ", items)
