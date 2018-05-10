@@ -35,11 +35,8 @@ class Bandit:
 
         items = []
         for m in range(self.M):
-            for k in range(self.K):
-                if f[k, m] >= 0.9:
-                    items.append(k)
-                    break
-
+            indexToUse = np.nonzero(f[:, m] > 0.9)[0]
+            if (len(indexToUse) > 0): items.append(indexToUse[0])
         return items
 
     @staticmethod
@@ -119,7 +116,7 @@ b = Bandit()
 
 ctx = {"age": 55, "gender": "female"}
 
-for i in range(300):
+for i in range(30):
     item = 0
     # pos = 1
     pos = random.randint(0, 1)
@@ -136,5 +133,5 @@ for i in range(300):
 
     print("ev - mean(ev): ", ev - np.mean(ev))
 
-    # items = b.get_items(ctx)
-    # print("items: ", items)
+    items = b.get_items(ctx)
+    print("items: ", items)
